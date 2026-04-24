@@ -1,24 +1,55 @@
-import { DEMO_PASSWORD, DEMO_PHONE } from '../utils/constants'
-import { demoUser } from '../mock/user'
+import { mapUserProfile } from './mappers'
+import { clearAccessToken, getAccessToken, request, setAccessToken } from './request'
 import type { UserProfile } from '../types/user'
 
-function wait(ms = 120) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
+interface LoginResponse {
+  access_token: string
+  token_type: string
+  user: {
+    id: number
+    phone: string
+    nickname: string
+    avatar: string
+    college: string
+    grade: string
+    bio: string
+  }
+}
+
+interface CurrentUserResponse {
+  id: number
+  phone: string
+  nickname: string
+  avatar: string
+  college: string
+  grade: string
+  bio: string
 }
 
 export async function login(phone: string, password: string): Promise<UserProfile> {
-  await wait()
+  const result = await request<LoginResponse>({
+    url: '/api/auth/login',
+    method: 'POST',
+    data: {
+      phone,
+      password
+    }
+  })
 
-  if (phone !== DEMO_PHONE || password !== DEMO_PASSWORD) {
-    throw new Error('演示账号为 18800001111 / 123456')
-  }
-
-  return { ...demoUser }
+  setAccessToken(result.access_token)
+  return mapUserProfile(result.user)
 }
 
 export async function getCurrentUser() {
-  await wait(60)
-  return { ...demoUser }
+  if (!getAccessToken()) {
+    return null
+  }
+
+  try {
+    const profile = await request<CurrentUserResponse>({ url: '/api/auth/me' })
+    return mapUserProfile(profile)
+  } catch (error) {
+    clearAccessToken()
+    throw error
+  }
 }

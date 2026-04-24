@@ -1,24 +1,30 @@
-import { messageCollection } from '../mock/messages'
+import { mapMessage } from './mappers'
+import { getAccessToken, request } from './request'
 
-function wait(ms = 100) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
+interface BackendMessageItem {
+  id: number
+  type: 'signup' | 'review' | 'comment' | 'system'
+  title: string
+  content: string
+  is_read: boolean
+  related_id?: number | null
+  created_at: string
 }
 
 export async function getMessages() {
-  await wait()
-  return messageCollection.map((item) => ({ ...item }))
+  if (!getAccessToken()) {
+    return []
+  }
+
+  const result = await request<BackendMessageItem[]>({ url: '/api/messages' })
+  return result.map(mapMessage)
 }
 
 export async function markMessageRead(id: string) {
-  await wait(60)
-  const result = messageCollection.find((item) => item.id === id)
+  const result = await request<BackendMessageItem | null>({
+    url: `/api/messages/read/${id}`,
+    method: 'POST'
+  })
 
-  if (!result) {
-    return undefined
-  }
-
-  result.isRead = true
-  return { ...result }
+  return result ? mapMessage(result) : undefined
 }

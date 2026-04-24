@@ -56,9 +56,9 @@
 </template>
 
 <script setup lang="ts">
-import Taro from '@tarojs/taro'
+import Taro, { useDidShow } from '@tarojs/taro'
 import { computed } from 'vue'
-import { activityCollection } from '../../mock/activities'
+import { activityStore } from '../../stores/activity'
 import { userStore } from '../../stores/user'
 import { PROFILE_SHORTCUTS } from '../../utils/constants'
 
@@ -67,9 +67,15 @@ const avatar = computed(() => userStore.profile?.avatar ?? 'data:image/svg+xml;u
 const profileName = computed(() => userStore.profile?.nickname ?? '未登录用户')
 const profileCollege = computed(() => userStore.profile ? `${userStore.profile.college} · ${userStore.profile.grade}` : '登录后同步你的校园身份')
 const profileBio = computed(() => userStore.profile?.bio ?? '还没有留下你的个人简介。')
-const favoriteCount = computed(() => activityCollection.filter((item) => item.isFavorite).length)
-const approvedCount = computed(() => activityCollection.filter((item) => item.signupStatus === 'approved').length)
-const publishedCount = computed(() => activityCollection.filter((item) => item.organizer.id === 'user-demo').length)
+const activityList = computed(() => activityStore.squareList)
+const favoriteCount = computed(() => activityList.value.filter((item) => item.isFavorite).length)
+const approvedCount = computed(() => activityList.value.filter((item) => item.signupStatus === 'approved').length)
+const publishedCount = computed(() => activityList.value.filter((item) => item.organizer.id === userStore.profile?.id).length)
+
+useDidShow(() => {
+  void userStore.hydrate()
+  void activityStore.loadSquareActivities({ keyword: '', category: '', status: 'all' })
+})
 
 function handlePrimaryAction() {
   if (userStore.loggedIn) {

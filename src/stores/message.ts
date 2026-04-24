@@ -4,6 +4,9 @@ import type { MessageItem } from '../types/message'
 
 const state = reactive({
   list: [] as MessageItem[],
+  reset() {
+    this.list = []
+  },
   async loadMessages() {
     this.list = await getMessages()
   },

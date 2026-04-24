@@ -67,7 +67,7 @@
         <EmptyState
           v-else
           title="还没有评论"
-          description="这版先展示静态评论，后续可以继续接上评论发布和回复。"
+          description="等第一条留言出现，这里就会热闹起来。"
         />
       </view>
     </view>
@@ -126,9 +126,20 @@ async function handleFavorite() {
     return
   }
 
+  if (!userStore.loggedIn) {
+    Taro.navigateTo({ url: '/pages/auth/login/index' })
+    return
+  }
+
   const nextFavorite = !activity.value.isFavorite
-  await activityStore.toggleFavorite(activity.value.id)
-  Taro.showToast({ title: nextFavorite ? '已加入收藏' : '已取消收藏', icon: 'none' })
+
+  try {
+    await activityStore.toggleFavorite(activity.value.id)
+    Taro.showToast({ title: nextFavorite ? '已加入收藏' : '已取消收藏', icon: 'none' })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '操作失败'
+    Taro.showToast({ title: message, icon: 'none' })
+  }
 }
 
 async function handleSignup() {
@@ -141,13 +152,28 @@ async function handleSignup() {
     return
   }
 
-  const result = await activityStore.signupCurrentActivity()
-
-  if (!result) {
+  if (activity.value.signupStatus === 'approved') {
+    Taro.showToast({ title: '你已经报名过了', icon: 'none' })
     return
   }
 
-  Taro.showToast({ title: result.message, icon: 'none' })
+  if (activity.value.signupStatus === 'pending') {
+    Taro.showToast({ title: '报名审核中，请耐心等一下', icon: 'none' })
+    return
+  }
+
+  try {
+    const result = await activityStore.signupCurrentActivity()
+
+    if (!result) {
+      return
+    }
+
+    Taro.showToast({ title: result.message, icon: 'none' })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '报名失败'
+    Taro.showToast({ title: message, icon: 'none' })
+  }
 }
 </script>
 

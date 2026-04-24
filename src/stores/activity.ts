@@ -18,6 +18,14 @@ export const activityStore = reactive({
     category: '',
     status: 'all' as ActivityQuery['status']
   },
+  reset() {
+    this.recommended = []
+    this.squareList = []
+    this.currentActivity = null
+    this.filters.keyword = ''
+    this.filters.category = ''
+    this.filters.status = 'all'
+  },
   async loadRecommended() {
     this.recommended = await getRecommendedActivities()
   },

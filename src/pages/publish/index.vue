@@ -75,6 +75,7 @@
 import Taro from '@tarojs/taro'
 import { reactive } from 'vue'
 import { activityStore } from '../../stores/activity'
+import { userStore } from '../../stores/user'
 import { ACTIVITY_CATEGORIES } from '../../utils/constants'
 
 const categories = ACTIVITY_CATEGORIES
@@ -94,6 +95,11 @@ function handleAuditChange(event: { detail: { value: boolean } }) {
 }
 
 async function submitForm() {
+  if (!userStore.loggedIn) {
+    Taro.navigateTo({ url: '/pages/auth/login/index' })
+    return
+  }
+
   if (!form.title || !form.activityTime || !form.location || !form.contactInfo || !form.description) {
     Taro.showToast({ title: '先把关键信息填完整', icon: 'none' })
     return
@@ -106,29 +112,34 @@ async function submitForm() {
     return
   }
 
-  await activityStore.submitPublish({
-    title: form.title,
-    category: form.category,
-    activityTime: form.activityTime,
-    location: form.location,
-    maxParticipants,
-    auditRequired: form.auditRequired,
-    contactInfo: form.contactInfo,
-    description: form.description
-  })
+  try {
+    await activityStore.submitPublish({
+      title: form.title,
+      category: form.category,
+      activityTime: form.activityTime,
+      location: form.location,
+      maxParticipants,
+      auditRequired: form.auditRequired,
+      contactInfo: form.contactInfo,
+      description: form.description
+    })
 
-  Taro.showToast({ title: '活动已发布', icon: 'success' })
-  Object.assign(form, {
-    title: '',
-    category: categories[0],
-    activityTime: '',
-    location: '',
-    maxParticipants: '6',
-    auditRequired: false,
-    contactInfo: '',
-    description: ''
-  })
-  Taro.switchTab({ url: '/pages/square/index' })
+    Taro.showToast({ title: '活动已发布', icon: 'success' })
+    Object.assign(form, {
+      title: '',
+      category: categories[0],
+      activityTime: '',
+      location: '',
+      maxParticipants: '6',
+      auditRequired: false,
+      contactInfo: '',
+      description: ''
+    })
+    Taro.switchTab({ url: '/pages/square/index' })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '发布失败'
+    Taro.showToast({ title: message, icon: 'none' })
+  }
 }
 </script>
 
