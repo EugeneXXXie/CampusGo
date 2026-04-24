@@ -24,6 +24,15 @@
 - 前端开发地址：`http://127.0.0.1:3000`
 - 后端接口地址：`http://127.0.0.1:8000`
 
+## 1.1 关联仓库
+
+本项目与后端仓库配套使用：
+
+- 当前前端仓库（CampusGo）：`https://github.com/EugeneXXXie/CampusGo`
+- 对应后端仓库（CampusGoPY / CampusGo-Backend）：`https://github.com/EugeneXXXie/CampusGo-Backend`
+
+如果你需要本地完整联调，请同时拉取前后端两个仓库。
+
 ---
 
 ## 2. 技术栈
